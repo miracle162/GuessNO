@@ -16,15 +16,20 @@ export default function GamePage() {
   const [lastFeedback, setLastFeedback] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const inputRef = useRef(null);
+  const lastGuessTimeRef = useRef(0);
 
   const startNewGame = useCallback(() => {
+    if (!gameOver && session.guessesCount > 0) {
+      if (!window.confirm('目前遊戲尚未結束，確定要重新開始嗎？')) return;
+    }
     setSession(createGameSession());
     setInputValue('');
     setInputError('');
     setLastFeedback(null);
     setGameOver(false);
+    lastGuessTimeRef.current = 0;
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
+  }, [gameOver, session.guessesCount]);
 
   // Auto-focus input when game is active
   useEffect(() => {
@@ -35,14 +40,14 @@ export default function GamePage() {
 
   function validateInput(value) {
     if (value === '' || value === null || value === undefined) {
-      return '請輸入一個數字';
+      return '請輸入 1 到 100 的整數。';
     }
     const num = Number(value);
     if (!Number.isInteger(num)) {
-      return '請輸入整數';
+      return '請輸入 1 到 100 的整數。';
     }
     if (num < 1 || num > 100) {
-      return '數字必須介於 1 到 100 之間';
+      return '請輸入 1 到 100 的整數。';
     }
     return '';
   }
@@ -55,6 +60,14 @@ export default function GamePage() {
       return;
     }
     if (gameOver) return;
+
+    // Rate limiting: at most 1 guess per 500 ms
+    const now = Date.now();
+    if (now - lastGuessTimeRef.current < 500) {
+      setInputError('猜太快了，請稍候再試。');
+      return;
+    }
+    lastGuessTimeRef.current = now;
 
     const num = Number(inputValue);
     const { session: updatedSession, feedback } = processGuess(session, num);
@@ -112,6 +125,8 @@ export default function GamePage() {
               <input
                 ref={inputRef}
                 type="number"
+                inputMode="numeric"
+                pattern="\d*"
                 min="1"
                 max="100"
                 step="1"
@@ -139,7 +154,7 @@ export default function GamePage() {
 
       {/* Feedback area */}
       {feedbackCfg && (
-        <div className={`feedback-area card mt-2 ${feedbackCfg.className}`} role="status">
+        <div className={`feedback-area card mt-2 ${feedbackCfg.className}`} role="status" aria-live="polite" aria-atomic="true">
           <p className="feedback-text">
             {feedbackCfg.icon} {feedbackCfg.label}
           </p>
