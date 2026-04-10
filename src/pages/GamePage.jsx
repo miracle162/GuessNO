@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { createGameSession, processGuess, saveGame } from '../utils/gameStorage';
+import { createGameSession, processGuess, saveGame, loadGames, computeStats } from '../utils/gameStorage';
 import './GamePage.css';
 
 const FEEDBACK_CONFIG = {
@@ -17,6 +17,7 @@ export default function GamePage() {
   const [inputError, setInputError] = useState('');
   const [lastFeedback, setLastFeedback] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+  const [gameOverStats, setGameOverStats] = useState(null);
   const inputRef = useRef(null);
   const lastGuessTimeRef = useRef(0);
 
@@ -29,6 +30,7 @@ export default function GamePage() {
     setInputError('');
     setLastFeedback(null);
     setGameOver(false);
+    setGameOverStats(null);
     lastGuessTimeRef.current = 0;
     setTimeout(() => inputRef.current?.focus(), 100);
   }, [gameOver, session.guessesCount]);
@@ -81,6 +83,7 @@ export default function GamePage() {
     if (feedback === 'CORRECT') {
       setGameOver(true);
       saveGame(updatedSession);
+      setGameOverStats(computeStats(loadGames()));
     } else {
       saveGame(updatedSession);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -172,6 +175,15 @@ export default function GamePage() {
         <div className="game-over-actions card mt-2 text-center">
           <p className="text-lg font-bold text-success">🎊 遊戲結束！</p>
           <p className="text-muted mt-1">你在 {session.guessesCount} 次內猜出了答案（{session.target}）！</p>
+          {gameOverStats && (
+            <div className="game-over-stats mt-2">
+              <span className="game-over-stat">本次：<strong>{session.guessesCount} 次</strong></span>
+              <span className="game-over-stat-divider">｜</span>
+              <span className="game-over-stat">最佳：<strong>{gameOverStats.best !== null ? `${gameOverStats.best} 次` : '—'}</strong></span>
+              <span className="game-over-stat-divider">｜</span>
+              <span className="game-over-stat">平均：<strong>{gameOverStats.average !== null ? `${gameOverStats.average} 次` : '—'}</strong></span>
+            </div>
+          )}
           <div className="flex gap-2 justify-center mt-3">
             <button className="btn-success btn-lg" onClick={startNewGame}>
               🔄 再玩一次

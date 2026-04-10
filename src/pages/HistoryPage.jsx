@@ -126,6 +126,13 @@ export default function HistoryPage() {
               {games.filter(g => g.success).length}
             </div>
           </div>
+          <div className="stat-card card">
+            <div className="stat-icon">📉</div>
+            <div className="stat-label">標準差</div>
+            <div className="stat-value">
+              {stats.stdDev !== null ? `±${stats.stdDev}` : '—'}
+            </div>
+          </div>
         </div>
       )}
 

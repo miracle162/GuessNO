@@ -86,11 +86,15 @@ export function processGuess(session, value) {
 export function computeStats(games) {
   const completed = games.filter(g => g.success);
   if (completed.length === 0) {
-    return { best: null, average: null, recent: [], totalGames: games.length };
+    return { best: null, average: null, stdDev: null, recent: [], totalGames: games.length };
   }
   const counts = completed.map(g => g.guessesCount);
   const best = Math.min(...counts);
-  const average = Math.round((counts.reduce((a, b) => a + b, 0) / counts.length) * 10) / 10;
+  const rawMean = counts.reduce((a, b) => a + b, 0) / counts.length;
+  const average = Math.round(rawMean * 10) / 10;
+  const stdDev = completed.length > 1
+    ? Math.round(Math.sqrt(counts.reduce((sum, c) => sum + (c - rawMean) ** 2, 0) / counts.length) * 10) / 10
+    : null;
   const recent = [...completed]
     .sort((a, b) => new Date(a.endAt) - new Date(b.endAt))
     .slice(-20)
@@ -98,7 +102,7 @@ export function computeStats(games) {
       date: g.endAt ? new Date(g.endAt).toLocaleDateString('zh-TW') : '',
       guessesCount: g.guessesCount,
     }));
-  return { best, average, recent, totalGames: games.length };
+  return { best, average, stdDev, recent, totalGames: games.length };
 }
 
 /**

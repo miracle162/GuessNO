@@ -145,6 +145,25 @@
   padding: 1.5rem;
 }
 
+.game-over-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.game-over-stat {
+  white-space: nowrap;
+}
+
+.game-over-stat-divider {
+  color: var(--color-text-muted);
+  padding: 0 0.1rem;
+}
+
 /* History */
 .history-area {
   padding: 1.25rem 1.5rem;
