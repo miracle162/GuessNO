@@ -9,6 +9,8 @@ const FEEDBACK_CONFIG = {
   CORRECT:  { label: '🎉 恭喜通過！答對了！',        className: 'feedback-correct', icon: '✅' },
 };
 
+const RATE_LIMIT_MS = 500;
+
 export default function GamePage() {
   const [session, setSession] = useState(() => createGameSession());
   const [inputValue, setInputValue] = useState('');
@@ -61,9 +63,9 @@ export default function GamePage() {
     }
     if (gameOver) return;
 
-    // Rate limiting: at most 1 guess per 500 ms
+    // Rate limiting: at most 1 guess per RATE_LIMIT_MS
     const now = Date.now();
-    if (now - lastGuessTimeRef.current < 500) {
+    if (now - lastGuessTimeRef.current < RATE_LIMIT_MS) {
       setInputError('猜太快了，請稍候再試。');
       return;
     }
@@ -126,7 +128,6 @@ export default function GamePage() {
                 ref={inputRef}
                 type="number"
                 inputMode="numeric"
-                pattern="\d*"
                 min="1"
                 max="100"
                 step="1"
